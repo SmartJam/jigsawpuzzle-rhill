@@ -75,17 +75,23 @@
 			
 			
 			ctx.beginPath();
-			ctx.strokeStyle = stock.color;
 			
 			var beziers = stock.beziers;
 			for (var idx = 0; idx < beziers.length; idx++) {
 				var bezier = beziers[idx];
-				console.log("x:", x0, ", y:", y0, ", bezier:", bezier);
+				
+				ctx.strokeStyle = stock.color;
 				ctx.bezierCurveTo(x0 + bezier[0], y0 + bezier[1], x0 + bezier[2], y0 + bezier[3], x0 + bezier[4], y0 + bezier[5]);
+			
+				ctx.font = "10px Arial";
+				ctx.fillText(idx + "_0", x0 + bezier[0], y0 + bezier[1]);
+				ctx.fillText(idx + "_1", x0 + bezier[2], y0 + bezier[3]);
+				ctx.fillText(idx + "_2", x0 + bezier[4], y0 + bezier[5]);
 			}
-			ctx.font = "30px Arial";
-			ctx.fillText(stock.name, x0, y0);
 			ctx.stroke();
+			
+			ctx.font = "30px Arial";
+			ctx.fillText(stock.name, x0, y0);			
 		}
 
         function draw() {

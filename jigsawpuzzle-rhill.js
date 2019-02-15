@@ -826,6 +826,8 @@ Profile.prototype.getBboxConst = function() {
 Profile.prototype.getBbox = function() {
     return new Bbox(this.getBboxConst());
 };
+
+// 补集。垂直翻转 + 水平翻转
 Profile.prototype.complement = function() {
     var r = new Profile(this);
     // Just a matter of (normalized profiles required):
@@ -985,7 +987,9 @@ ProfileRandomizer.prototype.randomize = function() {
     return r;
 };
 
-// Side object
+// Side object, 边 {ptA, ptB, profileNormalized, profile, bbox} 
+// 		profile = this.profileNormalized.transform(ptA, ptB);
+//		bbox = this.profile.getBbox();
 function Side(a) {
     if (a) {
         if (a.ptA !== undefined && a.ptB !== undefined) {
