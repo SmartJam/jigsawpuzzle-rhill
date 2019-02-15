@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+<title></title>
+</head>
+<body>
+<center>
+
+<div id="puzzleParent" style="background-color:#fcc;color:black;">
+	<canvas id="puzzleCanvas"></canvas>
+</div>
+
+<audio id="puzzleSnap1" autobuffer><source src="12842__schluppipuppie__klick_01.ogg" /><source src="12842__schluppipuppie__klick_01.wav" /></audio>
+<audio id="puzzleSnap2" autobuffer><source src="12843__schluppipuppie__klick_02.ogg" /><source src="12843__schluppipuppie__klick_02.wav" /></audio>
+<audio id="puzzleClap1"><source src="35102_m1rk0_applause_5sec.ogg" /><source src="35102_m1rk0_applause_5sec.mp3" /></audio>
+<audio id="puzzleClap2"><source src="35104_m1rk0_applause_8sec.ogg" /><source src="35104_m1rk0_applause_8sec.mp3" /></audio>
+<audio id="puzzleClap3"><source src="60789_J.Zazvurek_Applause_9s.ogg" /><source src="60789_J.Zazvurek_Applause_9s.mp3" /></audio>
+
+<div style="margin-top:1em;">
+	<input id="puzzleShowEdges" style="width:12em;padding:3px;border:solid 1px #333;" type="button" value="Show edge pieces only" onclick="javascript:this.toggleEdges();"/>
+	<input id="puzzleShowPreview" style="width:12em;padding:3px;border:solid 1px #333;" type="button" value="Show preview" onclick="javascript:this.togglePreview();"/>
+</div>
+
+<div style="margin-top:1em;font-size:11px;color:#777">
+How to play:
+	<ul style="margin-top:0;">
+		<li>Click on a piece to move it, click again to release it</li>
+		<li><b>Left</b> and <b>right</b> arrows (or alternatively <b>'A'</b> or <b>'D'</b>, or <b>mousewheel</b>) to rotate a piece</li>
+		<li><b>Up</b> and <b>down</b> arrows (or alternatively <b>'W'</b> or <b>'S'</b>) to send a piece behind or on top of other pieces</li>
+		<li><b>'E'</b> to toggle on/off visibility of non-edge pieces</li>
+		<li><b>'Q'</b> to show/hide preview tile</li>
+		<li><b>Space bar</b> to show/hide non-composite pieces (pieces made up of two or more atomic pieces)</li>
+	</ul>
+</div>
+
+
+<div id="puzzleTabCreate" style="display:block">
+<table style="margin-top:1em;font-family:tahoma,sans-serif;font-size:12px">
+	<tr>
+		<td style="vertical-align:top">Cut&nbsp;</td>
+		<td style="vertical-align:top">
+			<select id="puzzleCut">
+				<option value="classic" selected="selected">Classic</option>
+				<option value="straight">Straight</option>
+				<option value="tenon">Tenon</option>
+				<option value="wave">Wave</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td style="white-space:nowrap;vertical-align:top">Screen size&nbsp;</td>
+		<td style="vertical-align:top">
+			<select id="puzzleScreenSize">
+				<option value="h600">800&times;600</option>
+				<option value="h768">1024&times;768</option>
+				<option value="h1024" selected="selected">1280&times;1024</option>
+				<option value="h1050">1680&times;1050</option>
+				<option value="h1200">1920&times;1200</option>
+			</select>
+			<span style="color:#888">(Screen size determine work area size, which determine puzzle size, which influence the size of individual pieces)</span>
+		</td>
+	</tr>
+	<tr>
+		<td style="white-space:nowrap;vertical-align:top">Suggested number of pieces&nbsp;</td>
+		<td style="vertical-align:top">
+			<input id="puzzlePieces" type="text" size="2" maxlength="3" value="16"/>
+			<span style="color:#888">(This number is used as a guide only, restrictions may apply. More pieces = smaller pieces)</span>
+		</td>
+	</tr>
+	<tr>
+		<td style="white-space:nowrap;vertical-align:top">Complexity of puzzle pieces&nbsp;</td>
+		<td style="vertical-align:top">
+			<select id="puzzleComplexity">
+				<option value="0" selected="selected">Regular</option>
+				<option value="1">Slightly irregular</option>
+				<option value="3">Moderatly irregular</option>
+				<option value="8">Very irregular</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td style="white-space:nowrap;vertical-align:top">Whether pieces can be rotated&nbsp;</td>
+		<td style="vertical-align:top">
+			<select id="puzzleRotate">
+				<option value="0" selected="selected">No rotation</option>
+				<option value="4">Rotate 90&deg;</option>
+				<option value="24">Rotate fully</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td style="white-space:nowrap;vertical-align:top">URL of picture to use&nbsp;</td>
+		<td style="vertical-align:top">
+			<input id="puzzleURL" type="text" size="80" maxlength="256" value=""/>
+		</td>
+	</tr>
+	<tr>
+		<td style="white-space:nowrap;vertical-align:top">
+			<input id="puzzleCreate" style="width:9em;padding:3px;border:solid 1px #333;" type="button" value="Create" onclick="javascript:this.createPuzzle();self.location.hash='#';"/>
+		</td>
+	</tr>
+</table>
+</div>
+
+</center>
+<script src="jigsawpuzzle-rhill.js"></script>
+<script>
+	var options = {
+		view:"full",  // mini or full
+		src:'fei.jpg',
+		bedWidth:null,
+		bedHeight:null
+	};
+	new Puzzle("puzzleParent",options);
+</script>
+
+</body>
+</html>

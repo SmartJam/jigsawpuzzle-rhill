@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Document</title>
+    </head>
+
+    <body>
+        <canvas id="canvas" width="1024" height="1024"></canvas>
+        <script>
+		function geneRandColor() {
+			return 'rgb( ' + 
+            		( Math.random() * 255 >> 0 ) + ',' +
+            		( Math.random() * 255 >> 0 ) + ',' + 
+            		( Math.random() * 255 >> 0 ) + 
+            	' )'
+		}
+        var canvas = document.getElementById( 'canvas' );
+        var ctx = canvas.getContext( '2d' );
+        ctx.lineWidth = 2;
+		
+		var stocks = [
+			{
+				name: "straight",
+				color: geneRandColor(),
+				beziers: [
+					[0, 0, 1024, 0, 1024, 0]
+				]
+			},
+			{
+				name: "classic",
+				color: geneRandColor(),
+				beziers: [
+					[0, 0, 448, -224, 448, -96],
+					[448, -32, 384, -32, 384, 64],
+					[384, 160, 448, 192, 512, 192],
+					[576, 192, 640, 160, 640, 64],
+					[640, -32, 576, -32, 576, -96],
+					[576, -224, 1024, 0, 1024, 0]
+				]
+			},
+			{
+				name: "wave",
+				color: geneRandColor(),
+				beziers: [
+					[128, 128, 192, -96, 320, 0],
+					[352, 32, 224, 96, 256, 128],
+					[448, 224, 576, -224, 768, -128],
+					[800, -96, 672, -32, 704, 0],
+					[832, 96, 896, -128, 1024, 0]
+				]
+			},
+			{
+				name: "tenon",
+				color: geneRandColor(),
+				beziers: [
+					[0, 0, 224, 0, 224, 0],
+					[224, 0, 224, 192, 224, 192],
+					[224, 192, 416, 192, 416, 192],
+					[416, 192, 416, 0, 416, 0],
+					[416, 0, 608, 0, 608, 0],
+					[608, 0, 608, 192, 608, 192],
+					[608, 192, 800, 192, 800, 192],
+					[800, 192, 800, 0, 800, 0],
+					[800, 0, 1024, 0, 1024, 0]
+				]
+			}
+		];
+				
+
+        function drawBezier( ctx, origin, stock ) {
+			console.log("drawBezier, origin:", origin, ", stock:", stock);
+			var x0 = origin.x;
+			var y0 = origin.y;
+			
+			
+			ctx.beginPath();
+			ctx.strokeStyle = stock.color;
+			
+			var beziers = stock.beziers;
+			for (var idx = 0; idx < beziers.length; idx++) {
+				var bezier = beziers[idx];
+				console.log("x:", x0, ", y:", y0, ", bezier:", bezier);
+				ctx.bezierCurveTo(x0 + bezier[0], y0 + bezier[1], x0 + bezier[2], y0 + bezier[3], x0 + bezier[4], y0 + bezier[5]);
+			}
+			ctx.font = "30px Arial";
+			ctx.fillText(stock.name, x0, y0);
+			ctx.stroke();
+		}
+
+        function draw() {
+        	var origin = {x: 0, y: 0};
+			
+			var count = 0;
+			for (var idx in stocks) {
+				
+				var offset = 20 + count * 200;
+				drawBezier(ctx, {x: 0, y:offset}, stocks[idx]);
+				count++;
+			}
+			
+        }
+
+        draw();
+        </script>
+    </body>
+
+</html>
