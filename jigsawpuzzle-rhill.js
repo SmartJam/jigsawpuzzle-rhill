@@ -792,8 +792,10 @@ function Bezier(a) {
 }
 Bezier.prototype = [];
 
+var profileCount = 0;
 // Profile object。 {beziers:[], bbox}
 function Profile(a) {
+	this.id = (profileCount++);
     this.beziers = [];
     if (a) {
         if (a.beziers !== undefined) {
@@ -826,8 +828,6 @@ Profile.prototype.getBboxConst = function() {
 Profile.prototype.getBbox = function() {
     return new Bbox(this.getBboxConst());
 };
-
-// 补集。垂直翻转 + 水平翻转
 Profile.prototype.complement = function() {
     var r = new Profile(this);
     // Just a matter of (normalized profiles required):
@@ -901,6 +901,7 @@ Profile.prototype.transform = function(ptA, ptB) {
     }
     return r;
 };
+
 Profile.prototype.toCanvas = function(ctx, ptA, ptB) {
     // special case: no profile
     if (!this.beziers.length) {
@@ -913,10 +914,21 @@ Profile.prototype.toCanvas = function(ctx, ptA, ptB) {
         var beziers = this.beziers;
         var nBeziers = beziers.length;
         var bezier;
+		
+		var logs = [];
         for (var iBezier = 0; iBezier < nBeziers; iBezier++) {
             bezier = this.beziers[iBezier];
             ctx.bezierCurveTo(x0 + bezier[0], y0 + bezier[1], x0 + bezier[2], y0 + bezier[3], x0 + bezier[4], y0 + bezier[5]);
+			
+			var b = bezier;
+			logs.push(`Profile#toCanvas bezierCurveTo:${b[0]}, ${b[1]}, ${b[2]}, ${b[3]}, ${b[4]}, ${b[5]}`);
         }
+		
+		console.log(`Profile#toCanvas id:${this.id}, ptA:(${ptA.x}, ${ptA.y}), ptB:(${ptB.x}, ${ptB.y})`);
+		logs.forEach(l=>{
+			console.log(l);
+		});
+		console.log("---");
     }
 };
 // Built-in profiles
@@ -987,9 +999,7 @@ ProfileRandomizer.prototype.randomize = function() {
     return r;
 };
 
-// Side object, 边 {ptA, ptB, profileNormalized, profile, bbox} 
-// 		profile = this.profileNormalized.transform(ptA, ptB);
-//		bbox = this.profile.getBbox();
+// Side object
 function Side(a) {
     if (a) {
         if (a.ptA !== undefined && a.ptB !== undefined) {
@@ -1136,6 +1146,7 @@ Side.prototype.draw3dEdge = function(ctx) {
     }
 };
 
+// 等高线、轮廓??  {sides, bbox, area, hole}. sides --> bbox, area, hole
 // Contour object, a collection of points forming a closed figure
 // Clockwise = filled, counterclockwise = hollow
 function Contour(a) {
@@ -1273,6 +1284,7 @@ Contour.prototype.draw3dEdge = function(ctx) {
     }
 };
 
+// 多边形 {contours}
 // Polygon object, a collection of Contour objects
 function Polygon(a) {
     this.contours = []; // no contour
@@ -1326,6 +1338,8 @@ Polygon.prototype.getArea = function() {
     }
     return this.area;
 };
+
+// 图心
 Polygon.prototype.getCentroid = function() {
     if (!this.centroid) {
         var contours = this.contours;
@@ -1593,7 +1607,7 @@ Polygon.prototype.draw3dEdge = function(ctx) {
 };
 
 /**
-  Puzzle tile base class
+  Puzzle tile base class。 {polygon}
  */
 function PuzzleTile() {
     this.polygon = null;
@@ -1669,6 +1683,27 @@ PuzzleTransientTile.prototype.setAngleStep = function(step, maxSteps) {
     this.angleRadians = 6.28318530718 * this.angleStep / this.angleMaxSteps;
     this.tImage = null; // invalidate internal state
 };
+
+function extendCtx(ctx) {
+	//ctx['beginPathBak'] = ctx.beginPath;
+	//ctx['closePathBak'] = ctx.closePath;
+	
+	function extendFunc(funcName) {
+		ctx[funcName+'Bak'] = ctx[funcName];
+		
+		ctx[funcName] = function(...args) {
+			console.log(funcName + " ", ...args);
+			ctx[funcName+'Bak'](...args);
+		}
+	}
+	
+	extendFunc('beginPath');
+	extendFunc('closePath');
+	extendFunc('moveTo');
+	extendFunc('lineTo');
+	extendFunc('bezierCurveTo');
+}
+
 PuzzleTransientTile.prototype.sync = function() {
     if (!this.tImage) {
         this.tImage = self.document.createElement('canvas');
@@ -1690,6 +1725,7 @@ PuzzleTransientTile.prototype.sync = function() {
         this.tImage.height = tBbox.height();
         // transfer/rotate source tile image
         var ctx = this.tImage.getContext('2d');
+		extendCtx(ctx);
         // first, set the clipping region as per contours
         ctx.save();
         ctx.beginPath();
@@ -1782,7 +1818,7 @@ PuzzleTransientTile.prototype.merge = function(others) {
 };
 
 /**
-  Display tile descriptor
+  Display tile descriptor. extends PuzzleTile, {tTile:PuzzleTransientTile, dPos:Point}
  */
 function PuzzleDisplayTile(tTile) {
     PuzzleTile.call(this);
@@ -1896,7 +1932,7 @@ PuzzleDisplayTile.prototype.isMostlyHollow = function() {
  */
 function PuzzlePart() {}
 
-// Puzzle piece
+// Puzzle piece. extends PuzzlePart {id, sides, piece:Bool, sTile:PuzzleSourceTile, tTile:PuzzleTransientTile(sTile), dTile:PuzzleDisplayTile(tTile)}
 function PuzzlePiece(id, sides, img) {
     this.id = id;
     this.sTile = new PuzzleSourceTile(img);
@@ -2004,7 +2040,7 @@ PuzzlePiece.prototype.isMostlyHollow = function() {
     return this.dTile.isMostlyHollow();
 };
 
-// Puzzle preview box
+// Puzzle preview box.  
 function PuzzlePreview(img) {
     this.preview = true;
     this.source = img;
@@ -2379,6 +2415,7 @@ function Puzzle(id, puzzleOptions) {
                 iw = round(ih * imgRatio);
             }
         }
+		console.log("[init] iw:", iw, ", ih:", ih);
         // 2010-06-20: Forgot that we might have to size *up* to fill as much as possible the bed
         /*		else if (iw<(cw-opts.bedMargin*2) && ih<(ch-opts.bedMargin*2)) {
         			if (imgRatio<cnvRatio) {
@@ -2463,6 +2500,7 @@ function Puzzle(id, puzzleOptions) {
         var partHeight = imgHeight / numRows;  // 每块高
         var partWidthVar = partWidth * max(min(this.config.complexity, 9), 0) * 0.48 / 9;  // 每块宽度变化 +- var
         var partHeightVar = partHeight * max(min(this.config.complexity, 9), 0) * 0.48 / 9;  // 每块高度变化 +- var
+		partWidthVar = 0; partHeightVar = 0;
 		stdout(`imgW:${imgWidth}, imgH:${imgHeight}, rowN:${numRows}, colN:${numCols}, partW:${partWidth}, partH:${partHeight}, partWV:${partWidthVar}, partHV:${partHeightVar}`);
         var randomX = function(iPart) {
             return self.Math.round(partWidth * (iPart + 1) + partWidthVar * 2 * rand() - partWidthVar);
@@ -2526,8 +2564,12 @@ function Puzzle(id, puzzleOptions) {
                 piece = new PuzzlePiece(pid++, sides[iRow][iCol], this.imageObj);
                 piece.edge = (iRow === 0) || (iCol === 0) || (iRow == numRows - 1) || (iCol == numCols - 1);
                 this.pieces[piece.id] = piece;
+				
+				if (piece.id == 1) console.log('piece1:', piece, ", sides:", sides[iRow][iCol]);
             }
         }
+		
+		//console.log('rows:', numRows, ', cols:', numCols, ', sides:', sides, ", pieces:", this.pieces);
     };
     this.partUnderPoint = function(p) {
         var stack = this.drawingStack;
